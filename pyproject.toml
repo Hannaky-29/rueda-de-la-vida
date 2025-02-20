@@ -2,7 +2,7 @@
 name = "control_de_ajuste"
 version = "0.1.0"
 description = ""
-authors = {name = "Hannaky-29",email = "maria.maluche.27@gmail.com"}
+authors = ["Hannaky-29",email = "maria.maluche.27@gmail.com"]
 license = "MIT"
 
 [tool.poetry.dependencies]
