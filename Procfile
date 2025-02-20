@@ -1,2 +1,5 @@
-# Archivo: Procfile
-web: gunicorn app:app
+<<<<<<< HEAD
+(tu versión local)
+=======
+(cambios del repositorio remoto)
+>>>>>>> origin/main
