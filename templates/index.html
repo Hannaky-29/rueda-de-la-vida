@@ -1,0 +1,198 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title><em><strong style="color: #800000; font-family: 'Old English Text MT', cursive;">Control de Áreas de Ajuste</strong></em></title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f9f9f9;
+            font-family: Arial, sans-serif;
+        }
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            width: 90%;
+            gap: 20px;
+        }
+        .summary-container, .canvas-container {
+            width: 50%;
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .reset-button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #800000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .color-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .color-section {
+            margin: 5px;
+            text-align: center;
+        }
+        .color-box {
+            width: 25px;
+            height: 25px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            margin: 2px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            font-size: 10px;
+            color: #000;
+            font-weight: bold;
+        }
+        canvas {
+            width: 400px;
+            height: 400px;
+            max-width: 100%;
+            max-height: 100%;
+            background-color: transparent;
+        }
+        footer {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h2><em><strong style="color: #800000; font-family: 'Old English Text MT', cursive;">Control de Áreas de Ajuste</strong></em></h2>
+
+    <div class="color-container" id="colorSelector"></div>
+
+    <div class="main-container">
+        <div class="summary-container" id="resumen">
+            <h3>Resumen de Áreas y Porcentajes</h3>
+            <ul id="listaResumen"></ul>
+            <button class="reset-button" onclick="restablecerDatos()">Restablecer Colores y Porcentajes</button>
+        </div>
+        <div class="canvas-container">
+            <canvas id="grafica" width="400" height="400"></canvas>
+        </div>
+    </div>
+
+    <footer>
+        <p>By Geraldine Ballen - Bogotá 2025</p>
+    </footer>
+
+    <script>
+        const colores = {
+            "Fisiológica": ["#ffe6e6", "#ffcccc", "#ffb3b3", "#ff9999", "#ff8080", "#ff6666", "#ff4d4d", "#ff3333", "#ff1a1a", "#ff0000"],
+            "Física": ["#e6ffe6", "#ccffcc", "#b3ffb3", "#99ff99", "#80ff80", "#66ff66", "#4dff4d", "#33ff33", "#1aff1a", "#00ff00"],
+            "Sexual": ["#ffe6ff", "#ffccff", "#ffb3ff", "#ff99ff", "#ff80ff", "#ff66ff", "#ff4dff", "#ff33ff", "#ff1aff", "#ff00ff"],
+            "Emocional": ["#ffffe6", "#ffffcc", "#ffffb3", "#ffff99", "#ffff80", "#ffff66", "#ffff4d", "#ffff33", "#ffff1a", "#ffff00"],
+            "Cognitiva": ["#e6e6ff", "#ccccff", "#b3b3ff", "#9999ff", "#8080ff", "#6666ff", "#4d4dff", "#3333ff", "#1a1aff", "#0000ff"],
+            "Social": ["#e6ffff", "#ccffff", "#b3ffff", "#99ffff", "#80ffff", "#66ffff", "#4dffff", "#33ffff", "#1affff", "#00ffff"],
+            "Laboral/Académica": ["#fff5e6", "#ffeacc", "#ffdfb3", "#ffd499", "#ffc980", "#ffbe66", "#ffb34d", "#ffa833", "#ff9d1a", "#ff9200"],
+            "Vocacional": ["#e6ffe6", "#ccffcc", "#b3ffb3", "#99ff99", "#80ff80", "#66ff66", "#4dff4d", "#33ff33", "#1aff1a", "#00ff00"],
+            "Familiar": ["#f0e6ff", "#e0ccff", "#d1b3ff", "#c299ff", "#b380ff", "#a466ff", "#954dff", "#8633ff", "#771aff", "#6800ff"],
+            "Recreativa y de Ocio": ["#e6f7ff", "#ccefff", "#b3e7ff", "#99dfff", "#80d7ff", "#66cfff", "#4dc7ff", "#33bfff", "#1ab7ff", "#00afff"]
+        };
+
+        const ctx = document.getElementById('grafica').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'polarArea',
+            data: {
+                labels: Object.keys(colores),
+                datasets: [{
+                    data: Array(Object.keys(colores).length).fill(0),
+                    backgroundColor: Object.values(colores).map(arr => arr[0]),
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                return `${label}: ${value}%`;
+                            }
+                        }
+                    },
+                    datalabels: {
+                        display: false
+                    }
+                },
+                layout: { padding: 20 }
+            }
+        });
+
+        function generarSelectorDeColores() {
+            const contenedor = document.getElementById('colorSelector');
+            contenedor.innerHTML = '';
+
+            Object.entries(colores).forEach(([categoria, tonos], index) => {
+                const seccion = document.createElement('div');
+                seccion.classList.add('color-section');
+                seccion.innerHTML = `<strong>${categoria}</strong><br>`;
+
+                tonos.forEach((color, nivel) => {
+                    const caja = document.createElement('div');
+                    caja.classList.add('color-box');
+                    caja.style.backgroundColor = color;
+                    caja.textContent = nivel + 1;
+                    caja.addEventListener('click', () => actualizarNivel(index, nivel, color, categoria));
+                    seccion.appendChild(caja);
+                });
+                contenedor.appendChild(seccion);
+            });
+        }
+
+        function actualizarNivel(indice, nivel, color, categoria) {
+            const porcentaje = (nivel + 1) * 10;
+            chart.data.datasets[0].data[indice] = porcentaje;
+            chart.data.datasets[0].backgroundColor[indice] = color;
+            chart.update();
+            actualizarResumen();
+        }
+
+        function restablecerDatos() {
+            chart.data.datasets[0].data = Array(Object.keys(colores).length).fill(0);
+            chart.data.datasets[0].backgroundColor = Object.values(colores).map(arr => arr[0]);
+            chart.update();
+            actualizarResumen();
+        }
+
+        function actualizarResumen() {
+            const listaResumen = document.getElementById('listaResumen');
+            listaResumen.innerHTML = '';
+            chart.data.labels.forEach((label, index) => {
+                const porcentaje = chart.data.datasets[0].data[index] || 0;
+                const item = document.createElement('li');
+                item.textContent = `${label}: ${porcentaje}%`;
+                listaResumen.appendChild(item);
+            });
+        }
+
+        generarSelectorDeColores();
+        actualizarResumen();
+    </script>
+</body>
+</html>
